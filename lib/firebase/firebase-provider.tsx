@@ -160,11 +160,13 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         displayName: `${firstName} ${lastName}`,
       })
 
-      // Create user profile with role and immediately redirect
+      // Create user profile and wait for it to complete
       await createUserProfile(userCredential.user.uid, email, role, firstName, lastName)
       
-      // Force redirect based on signup role (not waiting for auth state change)
-      if (role === "admin") {
+      // Verify role was set correctly before redirecting
+      const verifiedRole = await getUserRole(userCredential.user.uid)
+      
+      if (verifiedRole === "admin") {
         router.push("/admin/dashboard")
       } else {
         router.push("/browse")

@@ -14,6 +14,8 @@ import {
   type Timestamp,
   orderBy,
   limit,
+  type Query,
+  type DocumentData,
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { db, storage } from "./firebase-provider"
@@ -74,6 +76,7 @@ export async function getUserRole(userId: string): Promise<"student" | "admin" |
   try {
     const userDoc = await getDoc(doc(db, "users", userId))
     if (userDoc.exists()) {
+      console.log("🔥 getUserRole fetched data:", userDoc.data())
       return userDoc.data().role as "student" | "admin"
     }
     return null
@@ -113,10 +116,18 @@ export async function getAllStudents(): Promise<UserProfile[]> {
     const usersQuery = query(collection(db, "users"), where("role", "==", "student"))
 
     const querySnapshot = await getDocs(usersQuery)
-    return querySnapshot.docs.map((doc) => ({
-      ...doc.data(),
-      id: doc.id,
-    })) as UserProfile[]
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || "",
+        role: data.role || "student",
+        photoURL: data.photoURL || "",
+        tokenBalance: data.tokenBalance || 0
+      } as UserProfile
+    })
   } catch (error) {
     console.error("Error getting all students:", error)
     return []
@@ -236,7 +247,7 @@ export async function getItems(categoryFilter?: string): Promise<Item[]> {
   if (!db) return []
 
   try {
-    let itemsQuery = collection(db, "items")
+    let itemsQuery: Query<DocumentData> = collection(db, "items")
 
     if (categoryFilter) {
       itemsQuery = query(itemsQuery, where("category", "==", categoryFilter))
