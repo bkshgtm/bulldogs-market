@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { ModeToggle } from "@/components/theme-toggle"
 import { Loader2, User, Mail, Lock, KeyRound } from "lucide-react"
-import { createUserProfile, sendPasswordResetEmail } from "@/lib/firebase/firestore-utils"
+import { createUserProfile, sendPasswordResetEmail, getUserRole } from "@/lib/firebase/firestore-utils"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -87,10 +87,8 @@ export function LoginPage() {
           }
         }
       } else {
-        // Handle sign in
+        // Handle sign in and redirect based on role
         await signIn(email, password, activeTab)
-
-        // Redirect based on selected tab (which matches role)
         if (activeTab === "admin") {
           router.push("/admin/dashboard")
         } else {

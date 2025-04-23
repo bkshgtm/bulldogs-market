@@ -254,10 +254,18 @@ export async function getItems(categoryFilter?: string): Promise<Item[]> {
     }
 
     const querySnapshot = await getDocs(itemsQuery)
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Item[]
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        name: data.name || "",
+        description: data.description || "",
+        category: data.category || "",
+        imageUrl: data.imageUrl || "",
+        quantity: data.quantity || 0,
+        createdAt: data.createdAt || serverTimestamp()
+      } as Item
+    })
   } catch (error) {
     console.error("Error getting items:", error)
     return []
@@ -716,14 +724,20 @@ export async function addNotification(
   if (!db) throw new Error("Firestore not initialized")
 
   try {
-    const docRef = await addDoc(collection(db, "notifications"), {
+    const notificationData: any = {
       userId,
       message,
       type,
-      relatedId,
       read: false,
-      createdAt: serverTimestamp(),
-    })
+      createdAt: serverTimestamp()
+    }
+
+    // Only include relatedId if it's defined
+    if (relatedId !== undefined) {
+      notificationData.relatedId = relatedId
+    }
+
+    const docRef = await addDoc(collection(db, "notifications"), notificationData)
     return docRef.id
   } catch (error) {
     console.error("Error adding notification:", error)

@@ -92,11 +92,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         const userProfile = await getUserProfile(firebaseUser.uid)
 
         const userData: User = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          role: role || "student",
-          profile: userProfile || undefined,
-        }
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        role: role ?? "student",
+        profile: userProfile || undefined,
+}
 
         setUser(userData)
         setCookie("user", JSON.stringify(userData), {
