@@ -29,7 +29,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
         return
       }
 
-      // If user is admin and on a non-admin page (except for profile pages)
+      // If user is admin trying to access student pages (except root)
       if (user.role === "admin" && !pathname.startsWith("/admin") && pathname !== "/") {
         router.push("/admin/dashboard")
         return
