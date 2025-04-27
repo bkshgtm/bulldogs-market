@@ -21,10 +21,21 @@ import { getUserRole, getUserProfile, createUserProfile } from "@/lib/firebase/f
 import { setCookie, deleteCookie } from "cookies-next"
 
 // Initialize Firebase safely
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-const auth = getAuth(app)
-const db = getFirestore(app)
-const storage = getStorage(app)
+let app: ReturnType<typeof initializeApp>
+let auth: ReturnType<typeof getAuth>
+let db: ReturnType<typeof getFirestore>
+let storage: ReturnType<typeof getStorage>
+
+try {
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
+  auth = getAuth(app)
+  db = getFirestore(app)
+  storage = getStorage(app)
+  console.log('Firebase initialized successfully')
+} catch (error) {
+  console.error('Firebase initialization error:', error)
+  throw new Error('Failed to initialize Firebase services')
+}
 
 export { auth, db, storage }
 

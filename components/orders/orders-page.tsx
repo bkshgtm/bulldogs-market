@@ -171,7 +171,9 @@ export function OrdersPage() {
                   <div className="rounded-lg bg-muted p-3">
                     <h3 className="mb-1 font-medium">Pickup Details</h3>
                     <p className="text-sm">Time: {formatPickupTime(order.pickupTime)}</p>
-                    <p className="text-sm">Location: Bulldogs Market, Student Center</p>
+                    <p className="text-sm">Location: AAMU's Bulldog Market</p>
+                    <p className="text-sm">Macleb and Macintosh Building</p>
+                    <p className="text-sm">Room 103</p>
                   </div>
 
                   {order.status === "ready" && (

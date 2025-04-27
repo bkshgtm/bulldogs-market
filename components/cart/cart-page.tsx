@@ -118,6 +118,11 @@ export function CartPage() {
   }
 
   const handleCheckout = async () => {
+    // Add these logs at the beginning of handleCheckout
+    console.log("User authenticated:", !!user)
+    console.log("User ID:", user?.uid)
+    console.log("User role:", user?.role)
+
     try {
       setIsSubmitting(true)
 

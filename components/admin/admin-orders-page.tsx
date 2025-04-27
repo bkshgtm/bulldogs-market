@@ -126,6 +126,8 @@ export default function AdminOrdersPage() {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Pickup Location</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -135,6 +137,37 @@ export default function AdminOrdersPage() {
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-xs">#{order.id.slice(-6)}</TableCell>
                   <TableCell>{order.userEmail}</TableCell>
+                  <TableCell>
+                    <div className="max-w-xs">
+                      {order.items.map((item, index) => (
+                        <div key={index} className="text-sm">
+                          {item.name} <span className="text-muted-foreground">x{item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {order.pickupTime ? (
+                      <div className="text-sm">
+                        {new Date(order.pickupTime).toLocaleDateString([], {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                        <div className="text-muted-foreground">
+                          {new Date(order.pickupTime).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm">
+                      AAMU's Bulldog Market<br/>
+                      Macleb and Macintosh Building<br/>
+                      Room 103
+                    </div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge className="capitalize" variant={
                       order.status === "cancelled"

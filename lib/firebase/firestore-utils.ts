@@ -406,7 +406,10 @@ export async function createOrder(
   tokensUsed: number,
   userName?: string,
 ): Promise<string> {
-  if (!db) throw new Error("Firestore not initialized")
+  if (!db) {
+    console.error('Firestore database not initialized')
+    throw new Error("Firestore service not available. Please try again later.")
+  }
 
   try {
     // Update item quantities
