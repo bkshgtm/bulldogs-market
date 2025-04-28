@@ -52,7 +52,21 @@ export function ItemCard({ item, onAddToCart, isInCart }: ItemCardProps) {
             Added to Cart
           </Button>
         ) : (
-          <Button onClick={onAddToCart} className="w-full">
+          <Button 
+            onClick={() => {
+              const cartData = localStorage.getItem('cart') || '[]'
+              const currentCartItems = JSON.parse(cartData) as Array<{id: string, quantity: number}>
+              const currentItemInCart = currentCartItems.find(i => i.id === item.id)
+              const currentQuantity = currentItemInCart?.quantity || 0
+              
+              if (currentQuantity >= item.quantity) {
+                alert(`Only ${item.quantity} available in inventory`)
+                return
+              }
+              onAddToCart()
+            }} 
+            className="w-full"
+          >
             <ShoppingCart className="mr-2 h-4 w-4" />
             Add to Cart
           </Button>

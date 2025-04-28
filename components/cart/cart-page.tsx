@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getItem } from "@/lib/firebase/firestore-utils"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useFirebase } from "@/lib/firebase/firebase-provider"
@@ -83,6 +84,26 @@ export function CartPage() {
   const [pickupTime, setPickupTime] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [availableQuantities, setAvailableQuantities] = useState<Record<string, number>>({})
+
+  // Fetch available quantities when items change
+  useEffect(() => {
+    const fetchQuantities = async () => {
+      const quantities: Record<string, number> = {}
+      for (const item of items) {
+        try {
+          const currentItem = await getItem(item.id)
+          quantities[item.id] = currentItem?.quantity || 0
+        } catch (error) {
+          console.error(`Error fetching quantity for item ${item.id}:`, error)
+          quantities[item.id] = 0
+        }
+      }
+      setAvailableQuantities(quantities)
+    }
+
+    fetchQuantities()
+  }, [items])
   const router = useRouter()
   const { toast } = useToast()
 
@@ -100,6 +121,18 @@ export function CartPage() {
       toast({
         title: "Empty Cart",
         description: "Your cart is empty. Please add items before checking out.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Calculate total items (sum of quantities)
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
+    if (totalItems > 3) {
+      toast({
+        title: "Item Limit Exceeded",
+        description: "You can only checkout up to 3 items per order.",
         variant: "destructive",
       })
       return
@@ -127,9 +160,14 @@ export function CartPage() {
     try {
       setIsSubmitting(true)
 
+      // Calculate total items (sum of quantities)
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+      
       // Check token balance
       const tokenBalance = await getUserTokenBalance(user!.uid)
-      const tokensNeeded = items.length // Each item costs 1 token
+      const tokensNeeded = totalItems // Each item costs 1 token
+      
+      console.log(`Token check - Balance: ${tokenBalance}, Needed: ${tokensNeeded}`)
 
       if (tokenBalance < tokensNeeded) {
         toast({
@@ -137,6 +175,19 @@ export function CartPage() {
           description: `You need ${tokensNeeded} tokens but only have ${tokenBalance}. Please request more tokens.`,
           variant: "destructive",
         })
+        setIsSubmitting(false)
+        setIsConfirmDialogOpen(false)
+        return
+      }
+
+      if (tokenBalance <= 0) {
+        toast({
+          title: "No tokens available",
+          description: "You have no tokens remaining. Please request more tokens.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        setIsConfirmDialogOpen(false)
         return
       }
 
@@ -206,7 +257,7 @@ export function CartPage() {
             <ShoppingCart className="mb-4 h-12 w-12 text-muted-foreground" />
             <CardTitle className="mb-2 text-xl">Your cart is empty</CardTitle>
             <CardDescription className="max-w-md">
-              Browse the market to add items to your cart. You can select up to 2 items per order.
+              Browse the market to add items to your cart. You can checkout up to 3 items per order (1 token per item).
             </CardDescription>
             <Button className="mt-6" onClick={() => router.push("/browse")}>
               <ShoppingCart className="mr-2 h-4 w-4" />
@@ -222,9 +273,18 @@ export function CartPage() {
                 {items.map((item) => (
                   <CartItemCard
                     key={item.id}
-                    item={item}
+                    item={{
+                      ...item,
+                      availableQuantity: availableQuantities[item.id] || 0
+                    }}
                     onRemove={() => removeFromCart(item.id)}
-                    onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
+                    onUpdateQuantity={async (quantity) => {
+                      try {
+                        await updateQuantity(item.id, quantity)
+                      } catch (error) {
+                        console.error("Error updating quantity:", error)
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -240,7 +300,9 @@ export function CartPage() {
             <Card className="sticky top-20">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
-                <CardDescription>You are using {itemCount} of your tokens.</CardDescription>
+                <CardDescription>
+                  You are using {items.reduce((sum, item) => sum + item.quantity, 0)} tokens (1 per item)
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -315,7 +377,7 @@ export function CartPage() {
                 <strong>Pickup Time:</strong> {pickupTime ? new Date(pickupTime).toLocaleString() : "Not selected"}
               </p>
               <p className="text-sm">
-                <strong>Tokens Used:</strong> {items.length}
+                <strong>Tokens Used:</strong> {items.reduce((sum, item) => sum + item.quantity, 0)} (1 per item)
               </p>
             </div>
           </div>

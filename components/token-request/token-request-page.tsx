@@ -86,7 +86,8 @@ export function TokenRequestPage() {
     try {
       setIsSubmitting(true)
 
-      await createTokenRequest(user.uid, user.email || "", reason, tokensRequested)
+      const userName = user.profile ? `${user.profile.firstName} ${user.profile.lastName}` : undefined
+      await createTokenRequest(user.uid, user.email || "", reason, tokensRequested, userName)
 
       // Reset form
       setTokensRequested(1)

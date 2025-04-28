@@ -610,15 +610,21 @@ export async function createTokenRequest(
   if (!db) throw new Error("Firestore not initialized")
 
   try {
-    const docRef = await addDoc(collection(db, "tokenRequests"), {
+    const requestData: any = {
       userId,
       userEmail,
-      userName,
       reason,
       tokensRequested,
       status: "pending",
-      createdAt: serverTimestamp(),
-    })
+      createdAt: serverTimestamp()
+    }
+
+    // Only include userName if it's defined
+    if (userName !== undefined) {
+      requestData.userName = userName
+    }
+
+    const docRef = await addDoc(collection(db, "tokenRequests"), requestData)
 
     // Notify admins about new token request
     const adminsQuery = query(collection(db, "users"), where("role", "==", "admin"))
