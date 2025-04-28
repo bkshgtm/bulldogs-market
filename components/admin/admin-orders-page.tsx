@@ -67,9 +67,9 @@ export default function AdminOrdersPage() {
       await updateOrderStatus(id, status)
       const message =
         status === "ready"
-          ? "Your order is ready for pickup."
+          ? `Your order #${id.slice(-6)} is ready for pickup at AAMU's Bulldog Market (Macleb and Macintosh Building, Room 103).`
           : status === "completed"
-          ? "Your order is complete. Thank you!"
+          ? `Your order #${id.slice(-6)} has been completed. Thank you for shopping with us!`
           : ""
       if (message) await addNotification(userId, message)
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
@@ -83,7 +83,7 @@ export default function AdminOrdersPage() {
     if (!confirmCancel) return
     try {
       await updateOrderStatus(confirmCancel.id, "cancelled")
-      await addNotification(confirmCancel.userId, "Your order was cancelled by staff.")
+      await addNotification(confirmCancel.userId, `Your order #${confirmCancel.id.slice(-6)} was cancelled by staff. Your tokens have been refunded.`)
       setOrders((prev) => prev.map((o) => (o.id === confirmCancel.id ? { ...o, status: "cancelled" } : o)))
       toast({ title: "Order cancelled" })
     } catch {

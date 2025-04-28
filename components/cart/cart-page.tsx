@@ -9,6 +9,7 @@ import {
   getUserTokenBalance,
   updateUserTokenBalance,
   sendOrderConfirmationEmail,
+  addNotification,
 } from "@/lib/firebase/firestore-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -156,13 +157,17 @@ export function CartPage() {
       // Deduct tokens
       await updateUserTokenBalance(user!.uid, -tokensNeeded)
 
-      // Send confirmation email
+      // Send confirmation and notification
       if (user!.email) {
         await sendOrderConfirmationEmail(
           user!.email,
           orderId,
           items.map((item) => ({ name: item.name, quantity: item.quantity })),
           pickupTime,
+        )
+        await addNotification(
+          user!.uid,
+          `Your order #${orderId.slice(-6)} has been placed. Pickup time: ${new Date(pickupTime).toLocaleString()}`
         )
       }
 
