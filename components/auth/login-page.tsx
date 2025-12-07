@@ -366,7 +366,7 @@ export function LoginPage() {
             </div>
             <p className="mt-2 text-center text-sm text-muted-foreground">
               {activeTab === "student"
-                ? "Need help? Contact the Bulldogs Market staff."
+                ? "Need help?"
                 : "Staff login is restricted to authorized personnel only."}
             </p>
           </CardFooter>
